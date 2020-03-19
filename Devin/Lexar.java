@@ -50,7 +50,7 @@ public class Lexar {
                     if (isLetter(sym)) state = 2;
                     else if (isDigit(sym)) state = 2;
                     else if (sym == 41 || sym == 40) { // sym == ) || sym == (
-                        data = data.substring(0, data.length() - 2); // peel off excess character
+                        data = data.substring(0, data.length() - 1); // peel off excess character
                         putBackSym(sym); // replace excess character
                         token = new Token("name", data);
                     }
