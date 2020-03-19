@@ -54,9 +54,7 @@ public class Lexar {
                         putBackSym(sym); // replace excess character
                         token = new Token("name", data);
                     }
-                    else if(isWhiteSpace(sym) || sym == -1 || sym == 40) {
-                        token = new Token("name", data);
-                    }
+                    else if(isWhiteSpace(sym) || sym == -1 || sym == 40) token = new Token("name", data);
                     else error("Error in lexical analysis phase with symbol " + sym + " in state " + state );
                 } // end if (state == 2)
 
@@ -70,6 +68,11 @@ public class Lexar {
                 else if (state == 5) { // eventually returns number token type
                     if (isDigit(sym))   state = 5;
                     else if(sym == 46)  state = 5;
+                    else if (sym == 41 || sym == 40) { // sym == ) || sym == (
+                        data = data.substring(0, data.length() - 1); // peel off excess character
+                        putBackSym(sym); // replace excess character
+                        token = new Token("number", data);
+                    }
                     else if(isWhiteSpace(sym) || sym == -1) token = new Token("number", data);
                     else error("Error in lexical analysis phase with symbol " + sym + " in state " + state );
                 } // end if (state == 5)
@@ -160,17 +163,10 @@ public class Lexar {
         Lexar lex = new Lexar(args[0]);
         Token token = lex.getNextToken();
 
+        while (!token.getType().equals("eof")) {
+            System.out.print(token.getContent());
+            token = lex.getNextToken();
+        }
         System.out.println();
-        System.out.println("type: " + token.getType() + ", content: " + token.getContent());
-        token = lex.getNextToken();
-        System.out.println("type: " + token.getType() + ", content: " + token.getContent());
-        token = lex.getNextToken();
-        System.out.println("type: " + token.getType() + ", content: " + token.getContent());
-        token = lex.getNextToken();
-        System.out.println("type: " + token.getType() + ", content: " + token.getContent());
-        token = lex.getNextToken();
-        System.out.println("type: " + token.getType() + ", content: " + token.getContent());
-        token = lex.getNextToken();
-        System.out.println("type: " + token.getType() + ", content: " + token.getContent());
     } // end main()
 } // end Lexar
