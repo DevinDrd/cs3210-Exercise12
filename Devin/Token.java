@@ -15,6 +15,14 @@ public class Token {
         return content;
     }
 
+    public boolean isType(String type) {
+        return this.type == type;
+    }
+
+    public boolean equals(Token token) {
+        return type == token.getType() && content == token.getContent();
+    }
+
     public String toString() {
         return content;
     }
