@@ -1,6 +1,8 @@
 import java.util.Stack;
 
+import java.io.ByteArrayInputStream;
 import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -12,16 +14,47 @@ public class Lexar {
 
     private Stack<Token> tokenStack; // holds tokens to be read next, before source is read
 
+    private boolean verbos;  // print lexed tokens when true
+
+    public Lexar() throws IOException {
+        nextSym = 0;
+        tokenStack = new Stack<Token>();
+        verbos = false;
+    }
+
     public Lexar(String fileName) throws IOException {
         input = new BufferedReader(new FileReader(fileName));
         nextSym = 0;
         tokenStack = new Stack<Token>();
-    } // end Lexar()
+        verbos = false;
+    }
+
+    public Lexar(BufferedReader source) {
+        input = source;
+        nextSym = 0;
+        tokenStack = new Stack<Token>();
+        verbos = false;
+    }
+
+    public boolean hasSource() {
+        return input != null;
+    }
+
+    public boolean hasNext() {
+        if (nextSym > 0) return true;
+        try {
+            return input.ready();
+        } catch (IOException e) {
+            error("Lexar IOError, can't check for more");
+        }
+        return false;
+    }
 
     public Token getNextToken() {
         if (!tokenStack.empty()) {
             return tokenStack.pop();
         } else {
+            if (!hasNext()) error("Nothing more to lex");
             int state = 1;
             int sym = -1;
             String data = "";
@@ -42,7 +75,7 @@ public class Lexar {
                     else if(isDigit(sym))           state = 5;
                     else if (sym == 59)             state = 6; // sym == ;
                     else if (sym == -1)             state = 7;
-                    else error("Error in lexical analysis phase with symbol " + sym + " in state " + state );
+                    else error("Lexical analysis phase with symbol " + sym + " in state " + state );
                 } // end if (state == 1)
 
                 else if (state == 2) { // returns name Token type (or keyword)
@@ -54,14 +87,14 @@ public class Lexar {
                         token = new Token("name", data);
                     }
                     else if(isWhiteSpace(sym) || sym == -1 || sym == 40) token = new Token("name", data);
-                    else error("Error in lexical analysis phase with symbol " + sym + " in state " + state );
+                    else error("Lexical analysis phase with symbol " + sym + " in state " + state );
                 } // end if (state == 2)
 
                 else if (state == 3) {} // state 3 comes later
 
                 else if (state == 4) { // eventually returns number token type
                     if (isDigit(sym)) state = 5;
-                    else error("Error in lexical analysis phase with symbol " + sym + " in state " + state );
+                    else error("Lexical analysis phase with symbol " + sym + " in state " + state );
                 } // end if (state == 4)
 
                 else if (state == 5) { // eventually returns number token type
@@ -73,7 +106,7 @@ public class Lexar {
                         token = new Token("number", data);
                     }
                     else if(isWhiteSpace(sym) || sym == -1) token = new Token("number", data);
-                    else error("Error in lexical analysis phase with symbol " + sym + " in state " + state );
+                    else error("Lexical analysis phase with symbol " + sym + " in state " + state );
                 } // end if (state == 5)
                 
                 else if (state == 6) { // eventually returns comment token type
@@ -100,7 +133,7 @@ public class Lexar {
 
             } while (token == null);
 
-            System.out.println("Lexed--->" + token);
+            if (verbos()) System.out.println("Lexed--->" + token);
             return token;
         } // end else
     } // end getNextToken()
@@ -110,12 +143,32 @@ public class Lexar {
         System.out.println("Putback token: " + token);
     } // end putBackToken()
 
+    public boolean verbos() {
+        return verbos;
+    }
+
+    public void setVerbos(boolean moo) {
+        verbos = moo;
+    }
+
+    public void add(String more) {
+        String source = more;
+        if (input != null) {
+            source = "";
+            try {while (input.ready()) source += input.readLine();}
+            catch (IOException e) {error("IOException while adding to lexar");}
+            source += more;
+        }
+        input = new BufferedReader(new InputStreamReader(
+                new ByteArrayInputStream(source.getBytes())));
+    }
+
     private int getNextSym() {
         int sym = -1;
 
         if (nextSym == 0) {
             try {sym = input.read();}
-            catch (IOException e) {System.out.println("Error reading from file");}
+            catch (IOException e) {error("Lexar reading from file");}
         } else {
             sym = nextSym;
             nextSym = 0;
@@ -149,26 +202,26 @@ public class Lexar {
     } // end isWhiteSpace()
 
     private void error(String message) {
-        System.out.println(message);
+        System.out.println("|Error---" + message + "|");
         System.exit(1);
     } // end error()
 
-/*
     public static void main(String[] args) throws Exception {
-        // BufferedReader sysIn = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader sysIn = new BufferedReader(new InputStreamReader(System.in));
+        Lexar lex = new Lexar();
+        lex.setVerbos(true);
 
-        // System.out.print("Enter a file name:");
-        // String fileName = sysIn.readLine();
+        System.out.println("Enter quit to exit");
 
-        // Lexar lex = new Lexar(fileName);
-        Lexar lex = new Lexar(args[0]);
-        Token token = lex.getNextToken();
+        double test = 0.;
 
-        while (!token.getType().equals("eof")) {
-            System.out.print(token.getContent());
-            token = lex.getNextToken();
-        }
-        System.out.println();
+        String source;
+        do {
+            System.out.print("---> ");
+            source = sysIn.readLine();
+            lex.add(source);
+            while (lex.hasNext()) lex.getNextToken();
+        } while (!source.equals("quit"));
     } // end main()
-*/
+
 } // end Lexar
