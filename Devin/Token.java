@@ -24,6 +24,6 @@ public class Token {
     }
 
     public String toString() {
-        return content;
+        return "[" + type + ", " + content + "]";
     }
 }

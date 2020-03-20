@@ -1,7 +1,6 @@
 import java.util.Stack;
 
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -101,6 +100,7 @@ public class Lexar {
 
             } while (token == null);
 
+            System.out.println("Lexed--->" + token);
             return token;
         } // end else
     } // end getNextToken()
@@ -153,6 +153,7 @@ public class Lexar {
         System.exit(1);
     } // end error()
 
+/*
     public static void main(String[] args) throws Exception {
         // BufferedReader sysIn = new BufferedReader(new InputStreamReader(System.in));
 
@@ -169,4 +170,5 @@ public class Lexar {
         }
         System.out.println();
     } // end main()
+*/
 } // end Lexar
