@@ -26,4 +26,11 @@ public class Token {
     public String toString() {
         return "[" + type + ", " + content + "]";
     }
+
+    public static void main(String[] args) {
+        Token t1 = new Token("", "");
+        Token t2 = new Token("", "");
+
+        System.out.println(t1.equals(t2));
+    }
 }

@@ -208,10 +208,12 @@ public class Lexar {
 
     public static void main(String[] args) throws Exception {
         BufferedReader sysIn = new BufferedReader(new InputStreamReader(System.in));
-        Lexar lex = new Lexar();
+        Lexar lex = new Lexar(args[0]);
         lex.setVerbos(true);
 
-        System.out.println("Enter quit to exit");
+        while(lex.hasNext()) lex.getNextToken();
+
+        System.out.println("Enter exit when done.");
 
         double test = 0.;
 
@@ -221,7 +223,7 @@ public class Lexar {
             source = sysIn.readLine();
             lex.add(source);
             while (lex.hasNext()) lex.getNextToken();
-        } while (!source.equals("quit"));
+        } while (!source.equals("exit"));
     } // end main()
 
 } // end Lexar
