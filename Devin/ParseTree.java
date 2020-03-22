@@ -2,7 +2,10 @@ import java.io.IOException;
 
 public class ParseTree {
 
-    Node root;
+    private Node root;
+
+    public static SDTable functionDefs;
+    public static SDTable varDefs;
 
     public ParseTree(String fileName) throws IOException {
         Parser parser = new Parser(fileName);

@@ -14,26 +14,26 @@ public class Lexar {
 
     private Stack<Token> tokenStack; // holds tokens to be read next, before source is read
 
-    private boolean verbos;  // print lexed tokens when true
+    private int verbos;  // print lexed tokens when true; 0 = none, 1 = minimum, 2 = details
 
     public Lexar() throws IOException {
         nextSym = 0;
         tokenStack = new Stack<Token>();
-        verbos = false;
+        verbos = 0;
     }
 
     public Lexar(String fileName) throws IOException {
         input = new BufferedReader(new FileReader(fileName));
         nextSym = 0;
         tokenStack = new Stack<Token>();
-        verbos = false;
+        verbos = 0;
     }
 
     public Lexar(BufferedReader source) {
         input = source;
         nextSym = 0;
         tokenStack = new Stack<Token>();
-        verbos = false;
+        verbos = 0;
     }
 
     public boolean hasSource() {
@@ -41,25 +41,34 @@ public class Lexar {
     }
 
     public boolean hasNext() {
-        if (nextSym > 0) return true;
+        boolean more = false;
         try {
-            return input.ready();
+            int temp = verbos; // save verbos
+            verbos = 0;     // make sure tokens aren't printed more then once
+
+            if (input.ready()) {
+                Token token = getNextToken(); // gets token
+                putBackToken(token); // puts it back
+
+                if (!token.getType().equals("eof")) more = true;
+            } // end if
+
+            verbos = temp; // restore verbos
         } catch (IOException e) {
             error("Lexar IOError, can't check for more");
         }
-        return false;
+        return more;
     }
 
     public Token getNextToken() {
+        Token token = null;
+
         if (!tokenStack.empty()) {
-            return tokenStack.pop();
+            token = tokenStack.pop();
         } else {
-            if (!hasNext()) error("Nothing more to lex");
             int state = 1;
             int sym = -1;
             String data = "";
-            boolean done = false;
-            Token token = null;
 
             do {
                 sym = getNextSym();
@@ -132,22 +141,22 @@ public class Lexar {
 
 
             } while (token == null);
-
-            if (verbos()) System.out.println("Lexed--->" + token);
-            return token;
         } // end else
+
+        if (verbos() >= 1) System.out.println("Lexed--->" + token);
+        return token;
     } // end getNextToken()
 
     public void putBackToken(Token token) {
         tokenStack.push(token);
-        System.out.println("Putback token: " + token);
+        if (verbos() >= 2) System.out.println("Putback token: " + token);
     } // end putBackToken()
 
-    public boolean verbos() {
+    public int verbos() {
         return verbos;
     }
 
-    public void setVerbos(boolean moo) {
+    public void setVerbos(int moo) {
         verbos = moo;
     }
 
@@ -209,7 +218,7 @@ public class Lexar {
     public static void main(String[] args) throws Exception {
         BufferedReader sysIn = new BufferedReader(new InputStreamReader(System.in));
         Lexar lex = new Lexar(args[0]);
-        lex.setVerbos(true);
+        lex.setVerbos(1);
 
         while(lex.hasNext()) lex.getNextToken();
 
@@ -225,5 +234,4 @@ public class Lexar {
             while (lex.hasNext()) lex.getNextToken();
         } while (!source.equals("exit"));
     } // end main()
-
 } // end Lexar

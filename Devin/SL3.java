@@ -6,13 +6,8 @@ public class SL3 {
 
     private BufferedReader sysIn;
 
-    public static SDTable functionDefs;
-    public static SDTable varDefs;
-
     private SL3() throws IOException {
         sysIn = new BufferedReader(new InputStreamReader(System.in));
-        functionDefs = new SDTable();
-        varDefs = new SDTable();
     }
 
     private void start() {

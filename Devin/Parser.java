@@ -1,5 +1,7 @@
 import java.io.IOException;
 
+import java.util.ArrayList;
+
 public class Parser {
 
     private Lexar lex;
@@ -17,7 +19,12 @@ public class Parser {
     }
 
     private Node parseDefs() {
-        return null;
+        ArrayList<Node> children = new ArrayList<Node>();
+        children.add(parseDef());
+
+        if (!lex.getNextToken().getType().equals("eof")) children.add(parseDefs());
+
+        return new Node("defs", children);
     }
 
     private Node parseDef() {
