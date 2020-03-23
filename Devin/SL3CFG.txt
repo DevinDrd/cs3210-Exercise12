@@ -7,6 +7,6 @@
 <expr> ---> NUMBER | NAME | <list>
 
 <list> ---> LPARENE RPAREN |
-              LPAREN <item> RPAREN
+            LPAREN <item> RPAREN
               
 <items> ---> <expr> | <expr> <items>

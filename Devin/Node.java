@@ -33,6 +33,10 @@ public class Node {
         children.add(child);
     }
 
+    private boolean isLeaf() {
+        return children.size() <= 0;
+    }
+
     public String toString() {
         String output = "";
 
@@ -51,26 +55,60 @@ public class Node {
 
     public String treeString() {
         String output = "";
-
         output += nodeString();
-        output += treeString(1, children);
+
+        for (int i = 0; i < children.size() - 1; i++)
+                output += treeString(children.get(i), "  ", true);
+        if (!isLeaf())
+                output += treeString(children.get(children.size() - 1), "  ", false);
 
         return output;
     }
 
-    private String treeString(int depth, ArrayList<Node> children) {
+    private String treeString(Node n, String pre, boolean more) {
         String output = "";
-        String pre = "";
 
-        for (int i = 1; i < depth; i++) pre += "  | ";
+        output += pre;
+        output += (more? "|-":"--");
+        output += n.nodeString();
 
-        for (Node n:children) {
-            output += pre + "  |-" + n.nodeString();
-            output += treeString(depth + 1, n.children);
+        pre += (more? "|   ":"    ");
+
+        for (int i = 0; i < n.children.size(); i++)
+                output += treeString(n.children.get(i), pre, i != n.children.size() - 1);
+
+        return output;
+    }
+
+/*
+    public String treeString() {
+        String output = "";
+
+        output += nodeString();
+        output += treeString("  ", children);
+
+        return output;
+    }
+
+    private String treeString(String pre, ArrayList<Node> children) {
+        String output = "";
+        int childrenCount = children.size();
+        Node child;
+
+        for (int i = 0; i < childrenCount - 1; i++) { // excludes last child
+            child = children.get(i);
+            output += pre + "|-" + child.nodeString();
+            output += treeString(pre + "|  ", child.children);
+        }
+
+        if (childrenCount >= 1) {
+            child = children.get(childrenCount - 1); // get last child
+            output += pre + "--" + child.nodeString();
+            output += treeString(pre + "|  ", child.children);
         }
 
         return output;
-    }
+    }*/
 
     public String nodeString() {
         String output = "";
