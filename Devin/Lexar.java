@@ -17,6 +17,8 @@ public class Lexar {
     private int verbos;  // print lexed tokens when true; 0 = none, 1 = minimum, 2 = details
 
     public Lexar() throws IOException {
+        input = new BufferedReader(new InputStreamReader(
+                new ByteArrayInputStream(new byte[0]))); // TESTME
         nextSym = 0;
         tokenStack = new Stack<Token>();
         verbos = 0;
@@ -160,14 +162,11 @@ public class Lexar {
         verbos = moo;
     }
 
-    public void add(String more) {
+    public void add(String more) { // TESTME
         String source = more;
-        if (input != null) {
-            source = "";
-            try {while (input.ready()) source += input.readLine();}
-            catch (IOException e) {error("IOException while adding to lexar");}
-            source += more;
-        }
+        source = "";
+        while (hasNext()) source += getNextToken();
+        source += more;
         input = new BufferedReader(new InputStreamReader(
                 new ByteArrayInputStream(source.getBytes())));
     }
