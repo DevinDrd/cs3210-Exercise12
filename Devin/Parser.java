@@ -28,15 +28,71 @@ public class Parser {
     }
 
     private Node parseDef() {
-        return null;
+        ArrayList<Node> children = new ArrayList<Node>();
+        Token token = lex.getNextToken();
+
+        errorCheck(token, "singleton", "(");
+
+        children.add(parseName());
+
+        token = lex.getNextToken();
+        errorCheck(token, "singleton", "(");
+
+        children.add(parseName());
+
+        token = lex.getNextToken();
+
+        if (!token.equals(new Token("singleton", ")"))) {
+            lex.putBackToken(token);
+            children.add(parseParams());
+            token = lex.getNextToken();
+        }
+
+        // System.out.println("Here");
+        errorCheck(token, "singleton", ")");
+
+        children.add(parseExpr());
+
+        token = lex.getNextToken();
+        errorCheck(token, "singleton", ")");
+
+        return new Node("def", children);
     }
 
     private Node parseParams() {
-        return null;
+        ArrayList<Node> children = new ArrayList<Node>();
+        Token token;
+
+        children.add(parseName());
+
+        token = lex.getNextToken();
+        if (token.getType().equals("name")) {
+            lex.putBackToken(token);
+            children.add(parseParams());
+        }
+        else lex.putBackToken(token);
+        
+        return new Node("params", children);
     }
 
     private Node parseExpr() {
-        return null;
+        ArrayList<Node> children = new ArrayList<Node>();
+        Token token = lex.getNextToken();
+        
+        if (token.getType().equals("name")) {
+            lex.putBackToken(token);
+            children.add(parseName());
+        }
+        else if (token.getType().equals("number")) {
+            lex.putBackToken(token);
+            children.add(parseNumber());
+        }
+        else {
+            lex.putBackToken(token);
+            children.add(parseList());
+        }
+
+        return new Node("expr", children);
     }
 
     private Node parseList() {
@@ -47,17 +103,39 @@ public class Parser {
         return null;
     }
 
-    private void errorCheck(Token token, String type) {
+    private Node parseName() {
+        Token token = lex.getNextToken();
+        errorCheck(token, "name");
+        return new Node(token);
+    }
 
+    private Node parseNumber() {
+        Token token = lex.getNextToken();
+        errorCheck(token, "number");
+        return new Node(token);
+    }
+
+    private void errorCheck(Token token, String type) {
+        if (token.getType() != type) error("Token " + token + " is not of type " + type);
     }
 
     private void errorCheck(Token token, String type, String content) {
+        Token token2 = new Token(type, content);
+        if (!token.equals(token2)) error("Token " + token + " does not equal " + token2);
+    }
 
+    private void error(String message) {
+        System.out.println("|Error---" + message + "|");
+        System.exit(1);
     }
 
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {System.out.println("Type: java Parser <filename>"); System.exit(0);}
 
-        Parser parser = new Parser(new Lexar(args[0]));
+        Lexar lexar = new Lexar(args[0]);
+        lexar.setVerbos(2);
+        Parser parser = new Parser(lexar);
+        Node root = parser.parseDefs();
+        System.out.print(root.treeString());
     }
 }

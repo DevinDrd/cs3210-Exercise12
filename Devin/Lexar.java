@@ -151,7 +151,7 @@ public class Lexar {
 
     public void putBackToken(Token token) {
         tokenStack.push(token);
-        if (verbos() >= 2) System.out.println("Putback token: " + token);
+        if (verbos() >= 2) System.out.println("Putback token--->" + token);
     } // end putBackToken()
 
     public int verbos() {

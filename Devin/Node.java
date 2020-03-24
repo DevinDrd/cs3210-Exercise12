@@ -7,6 +7,9 @@ public class Node {
 
     private final ArrayList<Node> children;
 
+    public static SDTable functionDefs;
+    public static SDTable varDefs;
+
     public Node(String type, ArrayList<Node> childs) {
         this.type = type;
         content = "";
@@ -19,6 +22,12 @@ public class Node {
         this.content = content;
         if (childs == null) children = new ArrayList<Node>();
         else children = childs;
+    }
+
+    public Node(Token token) {
+        type = token.getType();
+        content = token.getContent();
+        children = new ArrayList<Node>();
     }
 
     public String getType() {
@@ -69,7 +78,7 @@ public class Node {
         String output = "";
 
         output += pre;
-        output += (more? "|-":"--");
+        output += (more? "|—":"——");
         output += n.nodeString();
 
         pre += (more? "|   ":"    ");
@@ -79,36 +88,6 @@ public class Node {
 
         return output;
     }
-
-/*
-    public String treeString() {
-        String output = "";
-
-        output += nodeString();
-        output += treeString("  ", children);
-
-        return output;
-    }
-
-    private String treeString(String pre, ArrayList<Node> children) {
-        String output = "";
-        int childrenCount = children.size();
-        Node child;
-
-        for (int i = 0; i < childrenCount - 1; i++) { // excludes last child
-            child = children.get(i);
-            output += pre + "|-" + child.nodeString();
-            output += treeString(pre + "|  ", child.children);
-        }
-
-        if (childrenCount >= 1) {
-            child = children.get(childrenCount - 1); // get last child
-            output += pre + "--" + child.nodeString();
-            output += treeString(pre + "|  ", child.children);
-        }
-
-        return output;
-    }*/
 
     public String nodeString() {
         String output = "";
@@ -132,7 +111,7 @@ public class Node {
         n2.addChild(n3);
         n3.addChild(n5);
 
-        System.out.println(n1.treeString());
+        System.out.print(n1.treeString());
     }
     
 }

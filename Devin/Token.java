@@ -20,7 +20,7 @@ public class Token {
     }
 
     public boolean equals(Token token) {
-        return type == token.getType() && content == token.getContent();
+        return type.equals(token.getType()) && content.equals(token.getContent());
     }
 
     public String toString() {
