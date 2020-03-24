@@ -20,9 +20,14 @@ public class Parser {
 
     private Node parseDefs() {
         ArrayList<Node> children = new ArrayList<Node>();
+        Token token;
         children.add(parseDef());
 
-        if (!lex.getNextToken().getType().equals("eof")) children.add(parseDefs());
+        token = lex.getNextToken();
+        if (!token.getType().equals("eof")) {
+            lex.putBackToken(token);
+            children.add(parseDefs());
+        }
 
         return new Node("defs", children);
     }
@@ -122,7 +127,7 @@ public class Parser {
         token = lex.getNextToken();
         if (!token.equals("singleton", ")")) {
             lex.putBackToken(token);
-            children.add(parseExpr());
+            children.add(parseItems());
         }
         else lex.putBackToken(token);
 
