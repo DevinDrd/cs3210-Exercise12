@@ -23,6 +23,10 @@ public class Token {
         return type.equals(token.getType()) && content.equals(token.getContent());
     }
 
+    public boolean equals(String type, String content) {
+        return this.type.equals(type) && this.content.equals(content);
+    }
+
     public String toString() {
         return "[" + type + ", " + content + "]";
     }

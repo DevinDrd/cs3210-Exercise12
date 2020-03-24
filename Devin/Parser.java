@@ -42,7 +42,7 @@ public class Parser {
 
         token = lex.getNextToken();
 
-        if (!token.equals(new Token("singleton", ")"))) {
+        if (!token.equals("singleton", ")")) {
             lex.putBackToken(token);
             children.add(parseParams());
             token = lex.getNextToken();
@@ -78,7 +78,7 @@ public class Parser {
     private Node parseExpr() {
         ArrayList<Node> children = new ArrayList<Node>();
         Token token = lex.getNextToken();
-        
+
         if (token.getType().equals("name")) {
             lex.putBackToken(token);
             children.add(parseName());
@@ -96,11 +96,37 @@ public class Parser {
     }
 
     private Node parseList() {
-        return null;
+        ArrayList<Node> children = new ArrayList<Node>();
+        Token token = lex.getNextToken();
+
+        errorCheck(token, "singleton", "(");
+
+        token = lex.getNextToken();
+        if (!token.equals("singleton", ")")) {
+            lex.putBackToken(token);
+            children.add(parseItems());
+            token = lex.getNextToken();
+        }
+
+        errorCheck(token, "singleton", ")");
+
+        return new Node("list", children);
     }
 
     private Node parseItems() {
-        return null;
+        ArrayList<Node> children = new ArrayList<Node>();
+        Token token;
+
+        children.add(parseExpr());
+
+        token = lex.getNextToken();
+        if (!token.equals("singleton", ")")) {
+            lex.putBackToken(token);
+            children.add(parseExpr());
+        }
+        else lex.putBackToken(token);
+
+        return new Node("items", children);
     }
 
     private Node parseName() {

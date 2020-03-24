@@ -6,7 +6,7 @@
 <params> ---> NAME | NAME <params>
 <expr> ---> NUMBER | NAME | <list>
 
-<list> ---> LPARENE RPAREN |
+<list> ---> LPAREN RPAREN |
             LPAREN <item> RPAREN
               
 <items> ---> <expr> | <expr> <items>

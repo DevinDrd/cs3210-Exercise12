@@ -123,7 +123,9 @@ public class Lexar {
                 else if (state == 6) { // eventually returns comment token type
                     try{input.readLine();} // dump the rest of the comment line
                     catch(IOException e){}
-                    token = new Token("comment", "");
+                    // token = new Token("comment", "");
+                    state = 1;
+                    data = "";
                 } // end if (state == 6)
 
                 else if (state == 7) {} // state 7 comes later
