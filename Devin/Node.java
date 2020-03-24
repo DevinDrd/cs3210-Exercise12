@@ -66,10 +66,8 @@ public class Node {
         String output = "";
         output += nodeString();
 
-        for (int i = 0; i < children.size() - 1; i++)
-                output += treeString(children.get(i), "  ", true);
-        if (!isLeaf())
-                output += treeString(children.get(children.size() - 1), "  ", false);
+        for (int i = 0; i < children.size(); i++)
+                output += treeString(children.get(i), "  ", i != children.size() - 1);
 
         return output;
     }
@@ -78,10 +76,10 @@ public class Node {
         String output = "";
 
         output += pre;
-        output += (more? "|—":"——");
+        output += (more? "├─":"└─"); // alternative |—, ――
         output += n.nodeString();
 
-        pre += (more? "|   ":"    ");
+        pre += (more? "│   ":"    "); // alternative |
 
         for (int i = 0; i < n.children.size(); i++)
                 output += treeString(n.children.get(i), pre, i != n.children.size() - 1);
