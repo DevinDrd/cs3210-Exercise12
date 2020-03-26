@@ -32,18 +32,21 @@ public class SL3 {
         System.out.println(root.treeString());
 
         System.out.println();
-        System.out.println("Welcome to my SL3 REPL. Enter 'exit' when finished.");
+        System.out.println("Welcome to my SL3 REPL. Enter '(quit)' when finished.");
         lex.setVerbos(0);
 
         do {
             System.out.print("-->");
             input = sysIn.readLine();
 
-            if (input.equals("exit")) break;
+            if (input.equals("(quit)")) break;
 
             lex.add(input);
 
-        } while (!input.equals("exit"));
+            replRoot = par.parseRepl();
+            if (replRoot != null) System.out.print(replRoot.treeString());
+
+        } while (!input.equals("(quit)"));
     }
 
     public static void main(String[] args) {

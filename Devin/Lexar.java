@@ -86,7 +86,7 @@ public class Lexar {
                     else if(isDigit(sym))           state = 5;
                     else if (sym == 59)             state = 6; // sym == ;
                     else if (sym == -1)             state = 7;
-                    else error("Lexical analysis phase with symbol " + sym + " in state " + state );
+                    else error("Lexical analysis phase with symbol " + (char) sym + " in state " + state );
                 } // end if (state == 1)
 
                 else if (state == 2) { // returns name Token type (or keyword)
@@ -98,14 +98,14 @@ public class Lexar {
                         token = new Token("name", data);
                     }
                     else if(isWhiteSpace(sym) || sym == -1 || sym == 40) token = new Token("name", data);
-                    else error("Lexical analysis phase with symbol " + sym + " in state " + state );
+                    else error("Lexical analysis phase with symbol " + (char) sym + " in state " + state );
                 } // end if (state == 2)
 
                 else if (state == 3) {} // state 3 comes later
 
                 else if (state == 4) { // eventually returns number token type
                     if (isDigit(sym)) state = 5;
-                    else error("Lexical analysis phase with symbol " + sym + " in state " + state );
+                    else error("Lexical analysis phase with symbol " + (char) sym + " in state " + state );
                 } // end if (state == 4)
 
                 else if (state == 5) { // eventually returns number token type
@@ -117,7 +117,7 @@ public class Lexar {
                         token = new Token("number", data);
                     }
                     else if(isWhiteSpace(sym) || sym == -1) token = new Token("number", data);
-                    else error("Lexical analysis phase with symbol " + sym + " in state " + state );
+                    else error("Lexical analysis phase with symbol " + (char) sym + " in state " + state );
                 } // end if (state == 5)
                 
                 else if (state == 6) { // eventually returns comment token type
@@ -165,12 +165,15 @@ public class Lexar {
     }
 
     public void add(String more) { // TESTME
-        String source = more;
-        source = "";
-        while (hasNext()) source += getNextToken();
+        String source = "";
+        while (hasNext()) source += getNextToken().getContent();
         source += more;
         input = new BufferedReader(new InputStreamReader(
                 new ByteArrayInputStream(source.getBytes())));
+    }
+
+    public void clear() {
+        while (hasNext()) getNextToken();
     }
 
     private int getNextSym() {

@@ -18,6 +18,21 @@ public class Parser {
         return parseDefs();
     }
 
+    public Node parseRepl() {
+        Node node = null;
+        Token token = lex.getNextToken();
+        lex.putBackToken(token);
+
+        if (token.equals("singleton", "(")) node = parseExpr();
+        else if (token.getType().equals("name")) node = parseName();
+        else if (token.getType().equals("number")) node = parseNumber();
+        else System.out.println("Uh...I didn't understand that..");
+
+        if (lex.hasNext()) error("That was no good");
+
+        return node;
+    }
+
     private Node parseDefs() {
         ArrayList<Node> children = new ArrayList<Node>();
         Token token;
