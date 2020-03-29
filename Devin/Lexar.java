@@ -44,6 +44,9 @@ public class Lexar {
 
     public boolean hasNext() {
         boolean more = false;
+
+        if (tokenStack.size() > 0) return true;
+
         try {
             int temp = verbos; // save verbos
             verbos = 0;     // make sure tokens aren't printed more then once

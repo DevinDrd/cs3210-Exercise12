@@ -21,11 +21,20 @@ public class Parser {
     public Node parseRepl() {
         Node node = null;
         Token token = lex.getNextToken();
-        lex.putBackToken(token);
 
-        if (token.equals("singleton", "(")) node = parseExpr();
-        else if (token.getType().equals("name")) node = parseName();
-        else if (token.getType().equals("number")) node = parseNumber();
+        if (token.equals("singleton", "(")) {
+            lex.putBackToken(token);
+            node = parseExpr();
+        }
+        else if (token.getType().equals("name")) {
+            lex.putBackToken(token);
+            node = parseName();
+        }
+        else if (token.getType().equals("number")) {
+            lex.putBackToken(token);
+            node = parseNumber();
+        }
+        else if (token.getType().equals("eof")) node = new Node(token);
         else System.out.println("Uh...I didn't understand that..");
 
         if (lex.hasNext()) error("That was no good");
@@ -50,10 +59,13 @@ public class Parser {
     private Node parseDef() {
         ArrayList<Node> children = new ArrayList<Node>();
         Token token = lex.getNextToken();
+        Node node;
 
         errorCheck(token, "singleton", "(");
 
-        children.add(parseName());
+        node = parseName();
+        token = new Token(node.getType(), node.getContent());
+        errorCheck(token, "name", "define");
 
         token = lex.getNextToken();
         errorCheck(token, "singleton", "(");

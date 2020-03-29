@@ -11,9 +11,8 @@ public class SL3 {
     private Parser par;
 
     private Node root;
-    private Node replRoot;
 
-    String fileName;
+    private String fileName;
 
     private SL3() throws IOException {
         sysIn = new BufferedReader(new InputStreamReader(System.in));
@@ -21,6 +20,7 @@ public class SL3 {
 
     private void run() throws IOException {
         String input;
+        Node callNode;
 
         lex = new Lexar(fileName);
         lex.setVerbos(2);
@@ -39,12 +39,12 @@ public class SL3 {
             System.out.print("-->");
             input = sysIn.readLine();
 
-            if (input.equals("(quit)")) break;
-
             lex.add(input);
+            callNode = par.parseRepl();
+            System.out.println(callNode.treeString());
+            System.out.println();
 
-            replRoot = par.parseRepl();
-            if (replRoot != null) System.out.print(replRoot.treeString());
+            root.evalDefs(callNode);
 
         } while (!input.equals("(quit)"));
     }
