@@ -19,6 +19,9 @@ public class Node {
         if (childs == null) children = new ArrayList<Node>();
         else children = childs;
 
+        memStack = new Stack<SDTable>();
+        table = new SDTable();
+
         if (root == null) root = this;
     }
 
@@ -28,6 +31,9 @@ public class Node {
         if (childs == null) children = new ArrayList<Node>();
         else children = childs;
 
+        memStack = new Stack<SDTable>();
+        table = new SDTable();
+
         if (root == null) root = this;
     }
 
@@ -35,6 +41,9 @@ public class Node {
         type = token.getType();
         content = token.getContent();
         children = new ArrayList<Node>();
+
+        memStack = new Stack<SDTable>();
+        table = new SDTable();
 
         if (root == null) root = this;
     }
@@ -95,9 +104,12 @@ public class Node {
                         callNode.getChild(0).getChild(0).getChild(0).evalName() + // <list><items><expr><name>
                         " does not have correct # of arguments");
 
-            memStack.push(new SDTable(params, args));
+            table = new SDTable(params, args);
+            memStack.push(table);
             result = getChild(1).evaluate();
         }
+
+        memStack.pop();
 
         return result;
     }
@@ -134,13 +146,23 @@ public class Node {
         Node result = null;
 
         if (type.equals("expr")) {
-            System.out.println("evaluating expr");
+            result = getChild(0).evaluate();
         }
         else if (type.equals("list")) {
             System.out.println("evaluating list");
         }
         else if (type.equals("items")) {
             System.out.println("evaluating items");
+        }
+        else if (type.equals("name")) {
+            table = memStack.peek();
+            Double value = null;
+            
+            if (table.contains(evalName())) result = table.get(evalName());
+            else error("No variable found with name '" + evalName() + "' in this function");
+        }
+        else if (type.equals("number")) {
+            result = this;
         }
         else {
             error("Cannot evaluate node of type '" + type + "'");
