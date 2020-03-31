@@ -1,22 +1,31 @@
 import java.util.ArrayList;
 
 public class SDTable {
-    //String|Double Table
+    //String|Node Table
 
     private ArrayList<String> names;
-    private ArrayList<Double> values;
+    private ArrayList<Node> values;
 
     private int maxNameLength;
     private int maxValueLength;
 
     public SDTable() {
         names = new ArrayList<String>();
-        values = new ArrayList<Double>();
+        values = new ArrayList<Node>();
         maxNameLength = 0;
         maxValueLength = 0;
     }
 
-    public void put(String name, Double value) {
+    public SDTable(ArrayList<String> names, ArrayList<Node> values) {
+        if (names.size() == values.size()) {
+            this.names = names;
+            this.values = values;
+        } else {
+            System.out.println("|Error--->Cannot initialize a SDTable with differing ArrayList sizes|");
+        }
+    }
+
+    public void put(String name, Node value) {
         int index = find(name);
         if (index < 0) {
             names.add(name);
@@ -29,31 +38,24 @@ public class SDTable {
                 maxValueLength = value.toString().length();
     }
 
-    public double get(String name) {
+    public Node get(String name) {
         int index = find(name);
         if (index >= 0) {
             return values.get(index);
         } else {
             System.out.println("|Error--->variable [" + name + "] not found|");
             System.exit(1);
-            return -1;
+            return null;
         }
     }
 
-    public void set(String name, Double value) {
+    public void set(String name, Node value) {
         int index = find(name);
         if (index >= 0) {
             values.set(index, value);
         } else {
             System.out.println("|Error--->Key not found|");
             System.exit(1);
-        }
-    }
-
-    public void set(ArrayList<Double> values) {
-        if (this.values.size() == values.size()) this.values = values;
-        else {
-            System.out.println("|Error--->Can't set a SDTable with a differeing size value array|");
         }
     }
 
@@ -95,28 +97,6 @@ public class SDTable {
         }
 
         return output;
-    }
-
-    public static void main(String[] args) {
-        /*
-        SDTable table = new SDTable();
-        System.out.println(table.size());
-        System.out.println(table.isEmpty());
-        System.out.println(table.contains("devin"));
-        table.put("devin", 0.0);
-        table.put("devin", 1.0);
-        table.put("darnell", 2.0);
-        System.out.println(table.size());
-        System.out.println(table.isEmpty());
-        System.out.println(table.contains("devin"));
-        System.out.println(table.get("devin"));
-        System.out.println(table.get("darnell"));
-        */
-        SDTable table = new SDTable();
-        table.put("devin", 0.0);
-        table.put("darnell", 3.14159);
-        System.out.println(table);
-
     }
 
 }

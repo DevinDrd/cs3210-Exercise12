@@ -41,9 +41,9 @@ public class SL3 {
 
             lex.add(input);
             callNode = par.parseRepl();
-            System.out.println(callNode.treeString());
+            // System.out.println(callNode.treeString());
 
-            if (callNode.getType().equals("expr")) root.evalDefs(callNode);
+            if (callNode.getType().equals("list")) root.execute(callNode);
 
         } while (!input.equals("(quit)"));
     }

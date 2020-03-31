@@ -24,7 +24,7 @@ public class Parser {
 
         if (token.equals("singleton", "(")) {
             lex.putBackToken(token);
-            node = parseExpr();
+            node = parseList();
         }
         else if (token.getType().equals("name")) {
             lex.putBackToken(token);
@@ -183,7 +183,7 @@ public class Parser {
     }
 
     private void error(String message) {
-        System.out.println("|Error---" + message + "|");
+        System.out.println("|Error--->" + message + "|");
         System.exit(1);
     }
 

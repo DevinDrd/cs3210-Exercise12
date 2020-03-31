@@ -218,7 +218,7 @@ public class Lexar {
     } // end isWhiteSpace()
 
     private void error(String message) {
-        System.out.println("|Error---" + message + "|");
+        System.out.println("|Error--->" + message + "|");
         System.exit(1);
     } // end error()
 

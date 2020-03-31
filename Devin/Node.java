@@ -1,11 +1,15 @@
 import java.util.ArrayList;
+import java.util.Stack;
 
 public class Node {
 
     private String type;
     private String content;
 
-    private final ArrayList<Node> children;
+    private ArrayList<Node> children;
+
+    private static Stack<SDTable> memStack; // stack of tables holding variables for each function call
+    private static SDTable table;           // auxilery reference to the top of the stack
 
     public Node(String type, ArrayList<Node> childs) {
         this.type = type;
@@ -27,16 +31,65 @@ public class Node {
         children = new ArrayList<Node>();
     }
 
-    public void evalDefs(Node callNode) {
-        if (!type.equals("defs")) error("Node of type '" + type + "' cannot be evaluated as a defs");
-        if (!callNode.type.equals("expr")) error("Node of type '" + callNode.type + "' cannot be evaluated as a expr");
+    public Node execute(Node callNode) {
+        if (!type.equals("defs")) error("Can only execute node of type defs, not '" + type + "'");
+        if (!callNode.type.equals("list")) error("Node of type '" + callNode.type + "' cannot call a function");
 
-        //               <expr>  <list>      <items>     <expr>      <name>
-        String callName = callNode.getChild(0).getChild(0).getChild(0).getChild(0).evalName();
-        Node function = getFunction(this, callName);
+        Node result = null;
 
-        if (function != null) function.evalDef(callNode);
-        else error("Function named '" + callName + "' was not found");
+        if (callNode.children.size() > 0) {
+            //               <list>   <items>     <expr>      <name>
+            Node callName = callNode.getChild(0).getChild(0).getChild(0);
+
+            if (callName.type.equals("name")) {
+                Node function = getFunction(this, callName.evalName());
+
+                if (function == null) result = callNode.evaluate();    
+                else result = function.callDef(callNode);
+            }
+            else System.out.println("That's not a function call");
+        }
+        else System.out.println("That's an empty function call");
+
+        return result;
+    }
+
+    public Node callDef(Node callNode) {
+        if (!getType().equals("def")) error("Node of type '" + type + "' is not of type def");
+
+        Node result = null;
+        ArrayList<String> params = null;
+        ArrayList<Node> args = null;
+
+        //   <list>   <items>
+        if (callNode.getChild(0).children.size() >= 2)
+                args = getArgs(callNode.getChild(0).getChild(1), new ArrayList<Node>());
+        //                      <list>    <items>     <items>
+        else args = new ArrayList<Node>();
+
+        if (children.size() >= 3) {
+            params = getParams(getChild(1), new ArrayList<String>());
+
+            if (args.size() != params.size())
+                    error("Call " + 
+                        callNode.getChild(0).getChild(0).getChild(0).evalName() + // <list><items><expr><name>
+                        " does not have correct # of arguments");
+
+            memStack.push(new SDTable(params, args));
+            result = getChild(2).evaluate();
+        }
+        else {
+            params = new ArrayList<String>();
+            if (args.size() != params.size())
+                    error("Call " + 
+                        callNode.getChild(0).getChild(0).getChild(0).getChild(0).evalName() + // <expr><list><items><name>
+                        " does not have correct # of arguments");
+
+            memStack.push(new SDTable(params, args));
+            result = getChild(1).evaluate();
+        }
+
+        return result;
     }
 
     private Node getFunction(Node defs, String callName) {
@@ -51,90 +104,127 @@ public class Node {
         return getFunction(defs.getChild(1), callName);
     }
 
-    public Node evalDef(Node call) {
-        if (!getType().equals("def")) error("Node of type '" + type + "' is not of type def");
-
-        SDTable params = null;
-        Node result = null;
-        ArrayList<Double> args = null;
-
-        if (children.size() >= 3) {
-            //            <expr>   <list>     <items>    <items>
-            args = getArgs(call.getChild(0).getChild(0).getChild(1), new ArrayList<Double>()); // FIXME: An argument could be a call
-            params = getChild(1).evalParams();
-
-            if (args.size() != params.size())
-                    error("Call " + 
-                        call.getChild(0).getChild(0).getChild(0).evalName() + // <expr><list><items><name>
-                        " does not have correct # of arguments");
-
-            params.set(args);
-
-            result = getChild(2).evalExpr(params);
-        }
-        else {
-            params = new SDTable();
-            result = getChild(1).evalExpr(params);
-        }
-
-        return null;
-    }
-
-    private ArrayList<Double> getArgs(Node call, ArrayList<Double> args) {
-        if (!call.getType().equals("items")) error("Node of type '" + call.type + "' is not of type items");
-
-        args.add(call.getChild(0).evalExpr(new SDTable()).evalNumber());
-
-        if (call.children.size() >= 2) return getArgs(call.getChild(1), args);
-        else return args;
-    }
-
-    public SDTable evalParams() {
-        if (!getType().equals("params")) error("Node of type '" + type + "' is not of type params");
-        return getParams(this, new SDTable());
-    }
-
-    private SDTable getParams(Node node, SDTable params) {
+    private ArrayList<String> getParams(Node node, ArrayList<String> params) {
         if (!node.getType().equals("params")) error("Node of type '" + node.type + "' is not of type params");
 
-        params.put(node.getChild(0).evalName(), 0.0);
+        params.add(node.getChild(0).evalName());
         if (node.children.size() >= 2) return getParams(node.getChild(1), params);
         else return params;
     }
 
-    public Node evalExpr(SDTable vars) {
-        if (!type.equals("expr")) error("Node of type '" + type + "' cannot be evaluated as an expression");
+    private ArrayList<Node> getArgs(Node node, ArrayList<Node> args) {
+        if (!node.getType().equals("items")) error("Node of type '" + node.type + "' is not of type items");
 
-        System.out.println(vars);
-        
-        Node child = getChild(0);
-        String childType = child.getType();
+        args.add(node.getChild(0).evaluate());
+        if (node.children.size() >= 2) return getArgs(node.getChild(1), args);
+        else return args;
+    }
+
+    public Node evaluate() {
         Node result = null;
 
-        if (childType.equals("name")) result = child;
-        else if (childType.equals("number")) result = child;
-        else if (childType.equals("list")) result = child.evalList(vars);
-        else error("expr node has unexpected child");
+        if (type.equals("expr")) {
+            System.out.println("evaluating expr");
+        }
+        else if (type.equals("list")) {
+            System.out.println("evaluating list");
+        }
+        else if (type.equals("items")) {
+            System.out.println("evaluating items");
+        }
+        else {
+            error("Cannot evaluate node of type '" + type + "'");
+        }
 
         return result;
     }
 
-    public Node evalList(SDTable vars) {
-        
-        return null;
-    }
+    public Node preDef() {
+        if (!type.equals("list")) error("Can only call with a node of type list, not '" + type + "'");
 
-    public Node evalItems(SDTable vars) {
-        return null;
+        Node result = null;
+
+        //                 <items>     <expr>      <name>
+        String callName = getChild(0).getChild(0).getChild(0).evalName();
+
+        if (callName.equals("plus")) {
+
+        }
+        else if (callName.equals("minus")) {
+
+        }
+        else if (callName.equals("times")) {
+            
+        }
+        else if (callName.equals("div")) {
+            
+        }
+        else if (callName.equals("lt")) {
+            
+        }
+        else if (callName.equals("le")) {
+            
+        }
+        else if (callName.equals("eq")) {
+            
+        }
+        else if (callName.equals("ne")) {
+            
+        }
+        else if (callName.equals("and")) {
+            
+        }
+        else if (callName.equals("or")) {
+            
+        }
+        else if (callName.equals("not")) {
+            
+        }
+        else if (callName.equals("ins")) {
+            
+        }
+        else if (callName.equals("first")) {
+            
+        }
+        else if (callName.equals("rest")) {
+            
+        }
+        else if (callName.equals("null")) {
+            
+        }
+        else if (callName.equals("num")) {
+            
+        }
+        else if (callName.equals("list")) {
+            
+        }
+        else if (callName.equals("read")) {
+            
+        }
+        else if (callName.equals("write")) {
+            
+        }
+        else if (callName.equals("nl")) {
+            
+        }
+        else if (callName.equals("quote")) {
+            
+        }
+        else if (callName.equals("quit")) {
+            result = new Node("quit", null);
+        }
+        else error("Function named '" + callName + "' was not found");
+
+        return result;
     }
 
     public String evalName() {
-        if (!type.equals("name")) error("Node of type '" + type + "' cannot be evaluated as a name");
+        if (!type.equals("name")) error("Cannot evaluate node of type '" + type + "' as a name");
         return content;
     }
 
     public Double evalNumber() {
-        if (!type.equals("number")) error("Node of type '" + type + "' cannot be evaluated as a number");
+        if (!type.equals("number")) error("Cannot evaluate node of type '" + type + "' as a number");
         return Double.parseDouble(content);
     }
 
@@ -214,23 +304,8 @@ public class Node {
     }
 
     private void error(String message) {
-        System.out.println("|Error---" + message + "|");
+        System.out.println("|Error--->" + message + "|");
         System.exit(1);
     }
 
-    public static void main(String[] args) {
-        Node n1 = new Node("defs", null);
-        Node n2 = new Node("def", null);
-        Node n3 = new Node("expr", null);
-        Node n4 = new Node("defs", null);
-        Node n5 = new Node("name", null);
-
-        n1.addChild(n2);
-        n1.addChild(n4);
-        n2.addChild(n3);
-        n3.addChild(n5);
-
-        System.out.print(n1.treeString());
-    }
-    
 }
