@@ -11,11 +11,15 @@ public class Node {
     private static Stack<SDTable> memStack; // stack of tables holding variables for each function call
     private static SDTable table;           // auxilery reference to the top of the stack
 
+    private static Node root;
+
     public Node(String type, ArrayList<Node> childs) {
         this.type = type;
         content = "";
         if (childs == null) children = new ArrayList<Node>();
         else children = childs;
+
+        if (root == null) root = this;
     }
 
     public Node(String type, String content, ArrayList<Node> childs) {
@@ -23,15 +27,19 @@ public class Node {
         this.content = content;
         if (childs == null) children = new ArrayList<Node>();
         else children = childs;
+
+        if (root == null) root = this;
     }
 
     public Node(Token token) {
         type = token.getType();
         content = token.getContent();
         children = new ArrayList<Node>();
+
+        if (root == null) root = this;
     }
 
-    public Node execute(Node callNode) {
+    public Node call(Node callNode) {
         if (!type.equals("defs")) error("Can only execute node of type defs, not '" + type + "'");
         if (!callNode.type.equals("list")) error("Node of type '" + callNode.type + "' cannot call a function");
 
@@ -46,6 +54,8 @@ public class Node {
 
                 if (function == null) result = callNode.evaluate();    
                 else result = function.callDef(callNode);
+
+                if (result == null) error("Function named '" + callName + "' was not found");
             }
             else System.out.println("That's not a function call");
         }
@@ -82,7 +92,7 @@ public class Node {
             params = new ArrayList<String>();
             if (args.size() != params.size())
                     error("Call " + 
-                        callNode.getChild(0).getChild(0).getChild(0).getChild(0).evalName() + // <expr><list><items><name>
+                        callNode.getChild(0).getChild(0).getChild(0).evalName() + // <list><items><expr><name>
                         " does not have correct # of arguments");
 
             memStack.push(new SDTable(params, args));
@@ -213,7 +223,6 @@ public class Node {
         else if (callName.equals("quit")) {
             result = new Node("quit", null);
         }
-        else error("Function named '" + callName + "' was not found");
 
         return result;
     }

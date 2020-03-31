@@ -43,7 +43,7 @@ public class SL3 {
             callNode = par.parseRepl();
             // System.out.println(callNode.treeString());
 
-            if (callNode.getType().equals("list")) root.execute(callNode);
+            if (callNode.getType().equals("list")) root.call(callNode);
 
         } while (!input.equals("(quit)"));
     }
