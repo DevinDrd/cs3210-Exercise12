@@ -40,6 +40,23 @@ public class SDTable {
         }
     }
 
+    public void set(String name, Double value) {
+        int index = find(name);
+        if (index >= 0) {
+            values.set(index, value);
+        } else {
+            System.out.println("|Error--->Key not found|");
+            System.exit(1);
+        }
+    }
+
+    public void set(ArrayList<Double> values) {
+        if (this.values.size() == values.size()) this.values = values;
+        else {
+            System.out.println("|Error--->Can't set a SDTable with a differeing size value array|");
+        }
+    }
+
     public boolean isEmpty() {
         return names.isEmpty();
     }
@@ -61,29 +78,22 @@ public class SDTable {
     public String toString() {
         String output = "";
         int delta = 0; // auxilert variable: tracks how many spaces to put
-        /*
-        String name = "name";
-        String value = "value";
 
-
-        output += name;
-        delta = maxNameLength - name.length();
-        for (int i = 0; i < delta; i++) output += " ";
-
-        output += "|" + value;
-        */
-        output += names.get(0);
-        delta = maxNameLength - names.get(0).length();
-        for (int j = 0; j < delta; j++) output += " ";
-        output += "|" + values.get(0);
-
-        for (int i = 1; i < names.size(); i++) {
-            output += "\r\n";
-            output += names.get(i);
-            delta = maxNameLength - names.get(i).length();
+        if (names.size() > 0) {
+            output += names.get(0);
+            delta = maxNameLength - names.get(0).length();
             for (int j = 0; j < delta; j++) output += " ";
-            output += "|" + values.get(i);
+            output += "|" + values.get(0);
+
+            for (int i = 1; i < names.size(); i++) {
+                output += "\r\n";
+                output += names.get(i);
+                delta = maxNameLength - names.get(i).length();
+                for (int j = 0; j < delta; j++) output += " ";
+                output += "|" + values.get(i);
+            }
         }
+
         return output;
     }
 

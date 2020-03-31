@@ -27,48 +27,104 @@ public class Node {
         children = new ArrayList<Node>();
     }
 
-    public Double evalDefs(Node callNode) {
+    public void evalDefs(Node callNode) {
         if (!type.equals("defs")) error("Node of type '" + type + "' cannot be evaluated as a defs");
+        if (!callNode.type.equals("expr")) error("Node of type '" + callNode.type + "' cannot be evaluated as a expr");
 
         //               <expr>  <list>      <items>     <expr>      <name>
         String callName = callNode.getChild(0).getChild(0).getChild(0).getChild(0).evalName();
         Node function = getFunction(this, callName);
 
-        System.out.println(function.treeString());
-
-        return function.evalDef(callNode);
+        if (function != null) function.evalDef(callNode);
+        else error("Function named '" + callName + "' was not found");
     }
 
     private Node getFunction(Node defs, String callName) {
-        if (!defs.getType().equals("defs")) error("Node of type '" + type + "' is not of type defs");
+        if (!defs.getType().equals("defs")) error("Node of type '" + defs.type + "' is not of type defs");
 
         //                          <def>       <name>
         String functionName = defs.getChild(0).getChild(0).evalName();
         if (functionName.equals(callName)) return defs.getChild(0);
         
-        if (defs.children().size() <= 1) error("Function named '" + functionName + "' was not found");
+        if (defs.children().size() <= 1) return null;
         
         return getFunction(defs.getChild(1), callName);
     }
 
-    public Double evalDef(Node call) {
+    public Node evalDef(Node call) {
+        if (!getType().equals("def")) error("Node of type '" + type + "' is not of type def");
+
+        SDTable params = null;
+        Node result = null;
+        ArrayList<Double> args = null;
+
+        if (children.size() >= 3) {
+            //            <expr>   <list>     <items>    <items>
+            args = getArgs(call.getChild(0).getChild(0).getChild(1), new ArrayList<Double>()); // FIXME: An argument could be a call
+            params = getChild(1).evalParams();
+
+            if (args.size() != params.size())
+                    error("Call " + 
+                        call.getChild(0).getChild(0).getChild(0).evalName() + // <expr><list><items><name>
+                        " does not have correct # of arguments");
+
+            params.set(args);
+
+            result = getChild(2).evalExpr(params);
+        }
+        else {
+            params = new SDTable();
+            result = getChild(1).evalExpr(params);
+        }
+
         return null;
     }
 
-    public String evalParams() {
-        return null;
+    private ArrayList<Double> getArgs(Node call, ArrayList<Double> args) {
+        if (!call.getType().equals("items")) error("Node of type '" + call.type + "' is not of type items");
+
+        args.add(call.getChild(0).evalExpr(new SDTable()).evalNumber());
+
+        if (call.children.size() >= 2) return getArgs(call.getChild(1), args);
+        else return args;
     }
 
-    public Node evalExpr() {
+    public SDTable evalParams() {
+        if (!getType().equals("params")) error("Node of type '" + type + "' is not of type params");
+        return getParams(this, new SDTable());
+    }
+
+    private SDTable getParams(Node node, SDTable params) {
+        if (!node.getType().equals("params")) error("Node of type '" + node.type + "' is not of type params");
+
+        params.put(node.getChild(0).evalName(), 0.0);
+        if (node.children.size() >= 2) return getParams(node.getChild(1), params);
+        else return params;
+    }
+
+    public Node evalExpr(SDTable vars) {
         if (!type.equals("expr")) error("Node of type '" + type + "' cannot be evaluated as an expression");
-        return children.get(0);
+
+        System.out.println(vars);
+        
+        Node child = getChild(0);
+        String childType = child.getType();
+        Node result = null;
+
+        if (childType.equals("name")) result = child;
+        else if (childType.equals("number")) result = child;
+        else if (childType.equals("list")) result = child.evalList(vars);
+        else error("expr node has unexpected child");
+
+        return result;
     }
 
-    public Node evalList() {
+    public Node evalList(SDTable vars) {
+        
         return null;
     }
 
-    public Node evalItems() {
+    public Node evalItems(SDTable vars) {
         return null;
     }
 
