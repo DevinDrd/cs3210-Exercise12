@@ -8,8 +8,8 @@ public class Node {
 
     private ArrayList<Node> children;
 
-    private static Stack<SDTable> memStack; // stack of tables holding variables for each function call
-    private static SDTable table;           // auxilery reference to the top of the stack
+    private static Stack<SDTable> memStack = new Stack<SDTable>(); // stack of tables holding variables for each function call
+    private static SDTable table = new SDTable();                  // auxilery reference to the top of the stack
 
     private static Node root;
 
@@ -19,10 +19,7 @@ public class Node {
         if (childs == null) children = new ArrayList<Node>();
         else children = childs;
 
-        memStack = new Stack<SDTable>();
-        table = new SDTable();
-
-        if (root == null) root = this;
+        if (type.equals("defs")) root = this;
     }
 
     public Node(String type, String content, ArrayList<Node> childs) {
@@ -31,8 +28,14 @@ public class Node {
         if (childs == null) children = new ArrayList<Node>();
         else children = childs;
 
-        memStack = new Stack<SDTable>();
-        table = new SDTable();
+        if (root == null) root = this;
+    }
+
+    public Node (String type, Node child) {
+        this.type = type;
+        content = "";
+        children = new ArrayList<Node>();
+        children.add(child);
 
         if (root == null) root = this;
     }
@@ -61,10 +64,11 @@ public class Node {
             if (callName.type.equals("name")) {
                 Node function = getFunction(this, callName.evalName());
 
-                if (function == null) result = callNode.evaluate();    
+                //                              <list>
+                if (function == null) result = callNode.preDef();   
                 else result = function.callDef(callNode);
 
-                if (result == null) error("Function named '" + callName + "' was not found");
+                if (result == null) error("Function named '" + callName.evalName() + "' was not found");
             }
             else System.out.println("That's not a function call");
         }
@@ -149,10 +153,12 @@ public class Node {
             result = getChild(0).evaluate();
         }
         else if (type.equals("list")) {
-            System.out.println("evaluating list");
+            //   <items>      <expr>      <name>?
+            if (getChild(0).getChild(0).getChild(0).type.equals("name")) result = root.call(this);
+            else result = this;
         }
         else if (type.equals("items")) {
-            System.out.println("evaluating items");
+            return this;
         }
         else if (type.equals("name")) {
             table = memStack.peek();
@@ -178,83 +184,105 @@ public class Node {
 
         //                 <items>     <expr>      <name>
         String callName = getChild(0).getChild(0).getChild(0).evalName();
+        
+        //         <items>
+        Node n = getChild(0); // auxilery node
+        ArrayList<Node> args = new ArrayList<Node>();
+        while (n.children.size() == 2) {
+            n = n.getChild(1);
+            args.add(n.getChild(0));
+        }
 
-        if (callName.equals("plus")) {
+        if (args.size() == 0) {
+            if (callName.equals("read")) {
+                
+            }
+            else if (callName.equals("nl")) {
+            
+            }
+            else if (callName.equals("quit")) {
+                result = new Node("quit", new ArrayList<Node>());
+            }
+        }
 
-        }
-        else if (callName.equals("minus")) {
 
+        else if (args.size() == 1) {
+            if (callName.equals("not")) {
+                
+            }
+            else if (callName.equals("first")) {
+                
+            }
+            else if (callName.equals("rest")) {
+                
+            }
+            else if (callName.equals("null")) {
+                
+            }
+            else if (callName.equals("num")) {
+                
+            }
+            else if (callName.equals("list")) {
+                
+            }
+            else if (callName.equals("write")) {
+                System.out.print(args.get(0).evaluate().evalNumber().toString() + " "); // FIXME??Handle lists hint: make a listtostring method
+                result = new Node("noop", new ArrayList<Node>());
+            }
+            else if (callName.equals("quote")) {
+                
+            }
         }
-        else if (callName.equals("times")) {
-            
+
+
+        else if (args.size() == 2) {
+            if (callName.equals("plus")) {
+                Double sum = args.get(0).evaluate().evalNumber() + args.get(1).evaluate().evalNumber();
+                result = new Node("number", sum.toString(), new ArrayList<Node>());
+            }
+            else if (callName.equals("minus")) {
+                Double diff = args.get(0).evaluate().evalNumber() - args.get(1).evaluate().evalNumber();
+                result = new Node("number", diff.toString(), new ArrayList<Node>());
+            }
+            else if (callName.equals("times")) {
+                
+            }
+            else if (callName.equals("div")) {
+                
+            }
+            else if (callName.equals("lt")) {
+                
+            }
+            else if (callName.equals("le")) {
+                
+            }
+            else if (callName.equals("eq")) {
+                
+            }
+            else if (callName.equals("ne")) {
+                
+            }
+            else if (callName.equals("and")) {
+                
+            }
+            else if (callName.equals("or")) {
+                
+            }
+            else if (callName.equals("ins")) {
+                
+            }
         }
-        else if (callName.equals("div")) {
-            
-        }
-        else if (callName.equals("lt")) {
-            
-        }
-        else if (callName.equals("le")) {
-            
-        }
-        else if (callName.equals("eq")) {
-            
-        }
-        else if (callName.equals("ne")) {
-            
-        }
-        else if (callName.equals("and")) {
-            
-        }
-        else if (callName.equals("or")) {
-            
-        }
-        else if (callName.equals("not")) {
-            
-        }
-        else if (callName.equals("ins")) {
-            
-        }
-        else if (callName.equals("first")) {
-            
-        }
-        else if (callName.equals("rest")) {
-            
-        }
-        else if (callName.equals("null")) {
-            
-        }
-        else if (callName.equals("num")) {
-            
-        }
-        else if (callName.equals("list")) {
-            
-        }
-        else if (callName.equals("read")) {
-            
-        }
-        else if (callName.equals("write")) {
-            
-        }
-        else if (callName.equals("nl")) {
-            
-        }
-        else if (callName.equals("quote")) {
-            
-        }
-        else if (callName.equals("quit")) {
-            result = new Node("quit", null);
-        }
+
 
         return result;
     }
 
-    public String evalName() {
+    private String evalName() {
         if (!type.equals("name")) error("Cannot evaluate node of type '" + type + "' as a name");
         return content;
     }
 
-    public Double evalNumber() {
+    private Double evalNumber() {
         if (!type.equals("number")) error("Cannot evaluate node of type '" + type + "' as a number");
         return Double.parseDouble(content);
     }
