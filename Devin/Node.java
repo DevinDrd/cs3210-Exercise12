@@ -22,6 +22,22 @@ public class Node {
         if (type.equals("defs")) root = this;
     }
 
+    public Node(String type) {
+        this.type = type;
+        this.content = "";
+        children = new ArrayList<Node>();
+
+        if (root == null) root = this;
+    }
+
+    public Node(String type, String content) {
+        this.type = type;
+        this.content = content;
+        children = new ArrayList<Node>();
+
+        if (root == null) root = this;
+    }
+
     public Node(String type, String content, ArrayList<Node> childs) {
         this.type = type;
         this.content = content;
@@ -201,7 +217,7 @@ public class Node {
             
             }
             else if (callName.equals("quit")) {
-                result = new Node("quit", new ArrayList<Node>());
+                result = new Node("quit");
             }
         }
 
@@ -226,8 +242,8 @@ public class Node {
                 
             }
             else if (callName.equals("write")) {
-                System.out.print(args.get(0).evaluate().evalNumber().toString() + " "); // FIXME??Handle lists hint: make a listtostring method
-                result = new Node("noop", new ArrayList<Node>());
+                System.out.print(args.get(0).evaluate().string() + " ");
+                result = new Node("noop");
             }
             else if (callName.equals("quote")) {
                 
@@ -238,11 +254,11 @@ public class Node {
         else if (args.size() == 2) {
             if (callName.equals("plus")) {
                 Double sum = args.get(0).evaluate().evalNumber() + args.get(1).evaluate().evalNumber();
-                result = new Node("number", sum.toString(), new ArrayList<Node>());
+                result = new Node("number", sum.toString());
             }
             else if (callName.equals("minus")) {
                 Double diff = args.get(0).evaluate().evalNumber() - args.get(1).evaluate().evalNumber();
-                result = new Node("number", diff.toString(), new ArrayList<Node>());
+                result = new Node("number", diff.toString());
             }
             else if (callName.equals("times")) {
                 
@@ -257,7 +273,14 @@ public class Node {
                 
             }
             else if (callName.equals("eq")) {
-                
+                Double opandone = args.get(0).evaluate().evalNumber();
+                Double opandtwo = args.get(1).evaluate().evalNumber();
+
+                if (opandone.equals(opandtwo)) {
+                    result = new Node("number", "1");
+                } else {
+                    result = new Node("number", "0");
+                }
             }
             else if (callName.equals("ne")) {
                 
@@ -266,10 +289,30 @@ public class Node {
                 
             }
             else if (callName.equals("or")) {
-                
+                Double opandone = args.get(0).evaluate().evalNumber();
+                Double opandtwo = args.get(1).evaluate().evalNumber();
+
+                if (opandone != 0 || opandtwo != 0) {
+                    result = new Node("number", "1");
+                } else {
+                    result = new Node("number", "0");
+                }
             }
             else if (callName.equals("ins")) {
                 
+            }
+        }
+
+
+        else if (args.size() == 3) {
+            if (callName.equals("if")) {
+                Double condition = args.get(0).evaluate().evalNumber();
+
+                if (condition != 0) {
+                    result = args.get(1).evaluate();
+                } else {
+                    result = args.get(2).evaluate();
+                }
             }
         }
 
@@ -309,6 +352,32 @@ public class Node {
 
     private boolean isLeaf() {
         return children.size() <= 0;
+    }
+
+    public String string() {
+        String output = "";
+        
+        if (type.equals("number")) {
+            output += evalNumber().toString();
+        } else if (type.equals("list")) {
+            output += "(";
+
+            //                                  <items>      <expr>
+            if (children.size() > 0) output += getChild(0).getChild(0).evaluate().string();
+            //        <items>
+            Node n = getChild(0);
+
+            while (n.children.size() == 2) {
+                n = n.getChild(1);
+                output += " " + n.getChild(0).evaluate().string();
+            }
+
+            output += ")";
+        } else {
+            output += toString();
+        }
+        
+        return output;
     }
 
     public String toString() {
