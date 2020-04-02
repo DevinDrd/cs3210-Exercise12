@@ -1,5 +1,7 @@
-(define (ave x)
-   (div (sum x) (len x))
+(define (ave x) (
+   (write (sum x))
+   (write (len x))
+   )
 )
 
 (define (sum x)

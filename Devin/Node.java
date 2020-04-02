@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Stack;
+import java.util.Scanner;
 
 public class Node {
 
@@ -12,6 +13,8 @@ public class Node {
     private static SDTable table = new SDTable();                  // auxilery reference to the top of the stack
 
     private static Node root;
+
+    private static Scanner keys = new Scanner(System.in);
 
     public Node(String type, ArrayList<Node> childs) {
         this.type = type;
@@ -170,7 +173,9 @@ public class Node {
         }
         else if (type.equals("list")) {
             //   <items>      <expr>      <name>?
-            if (getChild(0).getChild(0).getChild(0).type.equals("name")) result = root.call(this);
+            if (children.size() == 0) result = this;
+            else if (getChild(0).getChild(0).getChild(0).type.equals("name")) result = root.call(this);
+            else if (getChild(0).getChild(0).children.size() > 0 && getChild(0).getChild(0).getChild(0).type.equals("name")) result = root.call(getChild(0)); // FIXME??
             else result = this;
         }
         else if (type.equals("items")) {
@@ -204,6 +209,7 @@ public class Node {
         //         <items>
         Node n = getChild(0); // auxilery node
         ArrayList<Node> args = new ArrayList<Node>();
+
         while (n.children.size() == 2) {
             n = n.getChild(1);
             args.add(n.getChild(0));
@@ -211,11 +217,15 @@ public class Node {
 
         if (args.size() == 0) {
             if (callName.equals("read")) {
-                
+                String input = keys.nextLine();
+                result = new Node("number", input); // maybe allow lists as input?
             }
+
             else if (callName.equals("nl")) {
-            
+                System.out.println();
+                result = new Node("null");
             }
+
             else if (callName.equals("quit")) {
                 result = new Node("quit");
             }
@@ -224,80 +234,137 @@ public class Node {
 
         else if (args.size() == 1) {
             if (callName.equals("not")) {
-                
+                double arg = args.get(0).evaluate().evalNumber();
+                if (arg == 0) result = new Node("number", "1");
+                else result = new Node("number", "0");
             }
+
             else if (callName.equals("first")) {
-                
+                Node arg = args.get(0).evaluate();
+                if (arg.type.equals("list")) { //        <list>  <items>   <expr>
+                    if (arg.children.size() > 0) result = arg.getChild(0).getChild(0).evaluate();
+                    else error("Cannot get the first item of an empty list");
+                }
+                else error("Cannot evaluate a number as a list");
             }
+
             else if (callName.equals("rest")) {
-                
+                Node arg = args.get(0).evaluate();
+
+                if (arg.type.equals("list")) {
+                    if (arg.children.size() > 0) {
+                        if (arg.getChild(0).children.size() > 1) {
+                            result = arg;
+                            result.setChild(0, result.getChild(0).getChild(1));
+                        }
+                        else result = new Node("list");
+                    }
+                    else error("List is too short to get the rest of the list");
+                }
+                else error("Cannot evaluate a list as a number");
             }
+
             else if (callName.equals("null")) {
-                
+                Node arg = args.get(0).evaluate();
+                if (arg.type.equals("list")) {
+                    if (arg.children.size() == 0) result = new Node("number", "1");
+                    else result = new Node("number", "0");
+                }
+                else error("Cannot evaluate a list as a number");
             }
+
             else if (callName.equals("num")) {
-                
+                Node arg = args.get(0).evaluate();
+                if (arg.type.equals("number")) result = new Node("number", "1");
+                else result = new Node("number", "0");
             }
+
             else if (callName.equals("list")) {
-                
+                Node arg = args.get(0).evaluate();
+                if (arg.type.equals("list")) result = new Node("number", "1");
+                else result = new Node("number", "0");
             }
+
             else if (callName.equals("write")) {
                 System.out.print(args.get(0).evaluate().string() + " ");
-                result = new Node("noop");
+                result = new Node("null");
             }
+
             else if (callName.equals("quote")) {
-                
+                result = args.get(0).evaluate();
             }
         }
 
 
         else if (args.size() == 2) {
             if (callName.equals("plus")) {
-                Double sum = args.get(0).evaluate().evalNumber() + args.get(1).evaluate().evalNumber();
-                result = new Node("number", sum.toString());
+                double sum = args.get(0).evaluate().evalNumber() + args.get(1).evaluate().evalNumber();
+                result = new Node("number", String.valueOf(sum));
             }
+
             else if (callName.equals("minus")) {
-                Double diff = args.get(0).evaluate().evalNumber() - args.get(1).evaluate().evalNumber();
-                result = new Node("number", diff.toString());
+                double diff = args.get(0).evaluate().evalNumber() - args.get(1).evaluate().evalNumber();
+                result = new Node("number", String.valueOf(diff));
             }
+
             else if (callName.equals("times")) {
-                
+                double product = args.get(0).evaluate().evalNumber() * args.get(1).evaluate().evalNumber();
+                result = new Node("number", String.valueOf(product));
             }
+
             else if (callName.equals("div")) {
-                
+                double div = args.get(0).evaluate().evalNumber() / args.get(1).evaluate().evalNumber();
+                result = new Node("number", String.valueOf(div));
             }
+
             else if (callName.equals("lt")) {
-                
+                double opandone = args.get(0).evaluate().evalNumber();
+                double opandtwo = args.get(1).evaluate().evalNumber();
+
+                if (opandone < opandtwo) result = new Node("number", "1");
+                else result = new Node("number", "0");
             }
+
             else if (callName.equals("le")) {
-                
+                double opandone = args.get(0).evaluate().evalNumber();
+                double opandtwo = args.get(1).evaluate().evalNumber();
+
+                if (opandone <= opandtwo) result = new Node("number", "1");
+                else result = new Node("number", "0");
             }
+
             else if (callName.equals("eq")) {
-                Double opandone = args.get(0).evaluate().evalNumber();
-                Double opandtwo = args.get(1).evaluate().evalNumber();
+                double opandone = args.get(0).evaluate().evalNumber();
+                double opandtwo = args.get(1).evaluate().evalNumber();
 
-                if (opandone.equals(opandtwo)) {
-                    result = new Node("number", "1");
-                } else {
-                    result = new Node("number", "0");
-                }
+                if (opandone == opandtwo) result = new Node("number", "1");
+                else result = new Node("number", "0");
             }
+
             else if (callName.equals("ne")) {
-                
-            }
-            else if (callName.equals("and")) {
-                
-            }
-            else if (callName.equals("or")) {
-                Double opandone = args.get(0).evaluate().evalNumber();
-                Double opandtwo = args.get(1).evaluate().evalNumber();
+                double opandone = args.get(0).evaluate().evalNumber();
+                double opandtwo = args.get(1).evaluate().evalNumber();
 
-                if (opandone != 0 || opandtwo != 0) {
-                    result = new Node("number", "1");
-                } else {
-                    result = new Node("number", "0");
-                }
+                if (opandone != opandtwo) result = new Node("number", "1");
+                else result = new Node("number", "0");
             }
+
+            else if (callName.equals("and")) {
+                double opandone = args.get(0).evaluate().evalNumber();
+                double opandtwo = args.get(1).evaluate().evalNumber();
+
+                if (opandone != 0 && opandtwo != 0) result = new Node("number", "1");
+                else result = new Node("number", "0");
+            }
+
+            else if (callName.equals("or")) {
+                double opandone = args.get(0).evaluate().evalNumber();
+                double opandtwo = args.get(1).evaluate().evalNumber();
+
+                if (opandone != 0 || opandtwo != 0) result = new Node("number", "1");
+                else result = new Node("number", "0");
+            }
+
             else if (callName.equals("ins")) {
                 
             }
@@ -306,13 +373,10 @@ public class Node {
 
         else if (args.size() == 3) {
             if (callName.equals("if")) {
-                Double condition = args.get(0).evaluate().evalNumber();
+                double condition = args.get(0).evaluate().evalNumber();
 
-                if (condition != 0) {
-                    result = args.get(1).evaluate();
-                } else {
-                    result = args.get(2).evaluate();
-                }
+                if (condition != 0) result = args.get(1).evaluate();
+                else result = args.get(2).evaluate();
             }
         }
 
@@ -325,7 +389,7 @@ public class Node {
         return content;
     }
 
-    private Double evalNumber() {
+    private double evalNumber() {
         if (!type.equals("number")) error("Cannot evaluate node of type '" + type + "' as a number");
         return Double.parseDouble(content);
     }
@@ -350,6 +414,10 @@ public class Node {
         return children.get(i);
     }
 
+    public void setChild(int index, Node child) {
+        children.set(index, child);
+    }
+
     private boolean isLeaf() {
         return children.size() <= 0;
     }
@@ -358,22 +426,27 @@ public class Node {
         String output = "";
         
         if (type.equals("number")) {
-            output += evalNumber().toString();
-        } else if (type.equals("list")) {
+            output += evalNumber();
+        }
+        else if (type.equals("list")) {
             output += "(";
 
-            //                                  <items>      <expr>
-            if (children.size() > 0) output += getChild(0).getChild(0).evaluate().string();
-            //        <items>
-            Node n = getChild(0);
+            if (children.size() > 0) {
+                //         <items>      <expr>
+                output += getChild(0).getChild(0).evaluate().string();
 
-            while (n.children.size() == 2) {
-                n = n.getChild(1);
-                output += " " + n.getChild(0).evaluate().string();
+                //        <items>
+                Node n = getChild(0);
+
+                while (n.children.size() == 2) {
+                    n = n.getChild(1);
+                    output += " " + n.getChild(0).evaluate().string();
+                }
             }
 
             output += ")";
-        } else {
+        }
+        else {
             output += toString();
         }
         

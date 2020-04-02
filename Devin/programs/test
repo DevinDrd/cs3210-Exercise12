@@ -1,6 +1,3 @@
-(define (test x y) 
-    (if (or x y)
-        (write (or x y))
-        (write (or x y))
-    )
+(define (test) 
+    1
 )
