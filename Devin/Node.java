@@ -59,6 +59,13 @@ public class Node {
         if (root == null) root = this;
     }
 
+    public Node(Node copy) {
+        this.type = copy.type;
+        this.content = copy.content;
+        this.children = new ArrayList<Node>();
+        for (Node child:copy.children) this.children.add(new Node(child));
+    }
+
     public Node(Token token) {
         type = token.getType();
         content = token.getContent();
@@ -117,7 +124,8 @@ public class Node {
                         callNode.getChild(0).getChild(0).getChild(0).evalName() + // <list><items><expr><name>
                         " does not have correct # of arguments");
 
-            memStack.push(new SDTable(params, args));
+            table = new SDTable(params, args);
+            memStack.push(table);
             result = getChild(2).evaluate();
         }
         else {
@@ -183,7 +191,6 @@ public class Node {
         }
         else if (type.equals("name")) {
             table = memStack.peek();
-            Double value = null;
             
             if (table.contains(evalName())) result = table.get(evalName());
             else error("No variable found with name '" + evalName() + "' in this function");

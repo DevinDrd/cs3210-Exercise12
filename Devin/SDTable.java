@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 
 public class SDTable {
+    // holds nodes of type list and number
     //String|Node Table
 
     private ArrayList<String> names;
@@ -41,7 +42,7 @@ public class SDTable {
     public Node get(String name) {
         int index = find(name);
         if (index >= 0) {
-            return values.get(index);
+            return new Node(values.get(index));
         } else {
             System.out.println("|Error--->variable [" + name + "] not found|");
             System.exit(1);
@@ -97,6 +98,16 @@ public class SDTable {
         }
 
         return output;
+    }
+
+    public static void main(String[] args) {
+        String name = "x";
+        Node arg = new Node("number", "5");
+
+        SDTable table = new SDTable();
+        table.put(name, arg);
+        System.out.println(table);
+        System.out.println(table.contains(name));
     }
 
 }
