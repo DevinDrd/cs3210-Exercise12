@@ -1,3 +1,3 @@
-(define (test x)
-    (write x)
+(define (test x y)
+    (ins x y)
 )

@@ -373,7 +373,22 @@ public class Node {
             }
 
             else if (callName.equals("ins")) {
-                
+                Node x = args.get(0).evaluate();
+                Node y = args.get(1).evaluate();
+
+                if (y.type.equals("list")) {
+                        x = new Node("expr", x);
+                        x = new Node("items", x);
+                    if (y.children.size() > 0) {
+                        y = y.getChild(0);
+                        x.addChild(y);
+                    }
+
+                    result = new Node("list", x);
+                }
+                else error("Second argument for function 'ins' needs to be a list");
+
+
             }
         }
 
