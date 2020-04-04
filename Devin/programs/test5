@@ -1,0 +1,7 @@
+(define (call x)
+    ((twocall x) (twocall (plus x 1)) (twocall (plus x x)))
+)
+
+(define (twocall x)
+    (times x 2)
+)

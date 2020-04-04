@@ -1,0 +1,15 @@
+(define (test x)
+    (go x)
+)
+
+(define (go x)
+    x
+)
+
+(define (og x)
+    ((dog x) x)
+)
+
+(define (dog y)
+    (plus y y)
+)

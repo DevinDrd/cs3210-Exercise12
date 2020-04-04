@@ -1,0 +1,22 @@
+(define (double x)
+    (plus x x)
+)
+
+(define (square x)
+    (times x x)
+)
+
+(define (pow b e)
+    (if (eq e 1)
+        b
+        (times b (pow b (minus e 1)))
+    )
+)
+
+(define (derive c e)
+    (if (not (le e 0))
+        ((times c e) (minus e 1))
+        (write -9999999999999999)
+    )
+    
+)

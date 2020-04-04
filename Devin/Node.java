@@ -159,7 +159,9 @@ public class Node {
 
     private ArrayList<String> getParams(Node node, ArrayList<String> params) {
         if (!node.getType().equals("params")) error("Node of type '" + node.type + "' is not of type params");
-
+        if (params.contains(node.getChild(0).content)) error("Parameters cannot have the same name");
+        if (getFunction(root, node.getChild(0).content) != null) error("Parameters and functions cannot have the same name");
+        
         params.add(node.getChild(0).evalName());
         if (node.children.size() >= 2) return getParams(node.getChild(1), params);
         else return params;
@@ -183,7 +185,7 @@ public class Node {
             //   <items>      <expr>      <name>?
             if (children.size() == 0) result = this;
             else if (getChild(0).getChild(0).getChild(0).type.equals("name")) {
-                if (!table.isEmpty()) table = memStack.peek();
+                if (!memStack.empty()) table = memStack.peek();
 
                 if (table.contains(getChild(0).getChild(0).getChild(0).evalName())) {
 
@@ -222,7 +224,7 @@ public class Node {
             return this;
         }
         else if (type.equals("name")) {
-            if (!table.isEmpty()) table = memStack.peek();
+            if (!memStack.empty()) table = memStack.peek();
             
             if (table.contains(evalName())) result = table.get(evalName());
             else error("No variable found with name '" + evalName() + "' in this function");
