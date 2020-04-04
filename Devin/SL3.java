@@ -41,11 +41,9 @@ public class SL3 {
 
             lex.add(input);
             callNode = par.parseRepl();
-            // System.out.println(callNode.treeString());
 
-            if (callNode.getType().equals("list")) root.call(callNode);
-
-            System.out.println();
+            if (callNode.getType().equals("list")) System.out.println(root.call(callNode).string());
+            else System.out.println("That wasn't a function call");
 
         } while (!input.equals("(quit)"));
     }

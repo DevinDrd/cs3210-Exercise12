@@ -96,9 +96,9 @@ public class Node {
 
                 if (result == null) error("Function named '" + callName.evalName() + "' was not found");
             }
-            else System.out.println("That's not a function call");
+            else error("That's not a valid function call");
         }
-        else System.out.println("That's an empty function call");
+        else error("That's an empty function call");
 
         return result;
     }
@@ -182,15 +182,47 @@ public class Node {
         else if (type.equals("list")) {
             //   <items>      <expr>      <name>?
             if (children.size() == 0) result = this;
-            else if (getChild(0).getChild(0).getChild(0).type.equals("name")) result = root.call(this);
-            else if (getChild(0).getChild(0).children.size() > 0 && getChild(0).getChild(0).getChild(0).type.equals("name")) result = root.call(getChild(0)); // FIXME??
+            else if (getChild(0).getChild(0).getChild(0).type.equals("name")) {
+                if (!table.isEmpty()) table = memStack.peek();
+
+                if (table.contains(getChild(0).getChild(0).getChild(0).evalName())) {
+
+                    //                  <items>
+                    result = new Node(getChild(0));
+                    result.getChild(0).setChild(0, result.getChild(0).evaluate());
+
+                    Node current = result;
+
+                    while (current.children.size() == 2) {
+                        current = current.getChild(1);
+                        current.getChild(0).setChild(0, current.getChild(0).evaluate());
+                    }
+
+                    result = new Node("list", result);
+                }
+                else result = root.call(this);
+            }
+            else if (getChild(0).getChild(0).getChild(0).type.equals("list")) {
+                //                  <items>
+                result = new Node(getChild(0));
+                result.getChild(0).setChild(0, result.getChild(0).evaluate());
+
+                Node current = result;
+
+                while (current.children.size() == 2) {
+                    current = current.getChild(1);
+                    current.getChild(0).setChild(0, current.getChild(0).evaluate());
+                }
+
+                result = new Node("list", result);
+            }
             else result = this;
         }
         else if (type.equals("items")) {
             return this;
         }
         else if (type.equals("name")) {
-            table = memStack.peek();
+            if (!table.isEmpty()) table = memStack.peek();
             
             if (table.contains(evalName())) result = table.get(evalName());
             else error("No variable found with name '" + evalName() + "' in this function");
@@ -448,26 +480,33 @@ public class Node {
         String output = "";
         
         if (type.equals("number")) {
-            output += evalNumber();
+            double num = evalNumber();
+            if ((num % 1) == 0) output += (int) num;
+            else output += num;
         }
         else if (type.equals("list")) {
             output += "(";
 
             if (children.size() > 0) {
+                Node n = getChild(0).getChild(0).evaluate();
                 //         <items>      <expr>
-                output += getChild(0).getChild(0).evaluate().string();
+                
+                output += n.string();
 
-                //        <items>
-                Node n = getChild(0);
+                //      <items>
+                n = getChild(0);
+                Node p = null;
 
                 while (n.children.size() == 2) {
                     n = n.getChild(1);
-                    output += " " + n.getChild(0).evaluate().string();
+                    p = n.getChild(0).evaluate();
+                    output += " " + p.string();
                 }
             }
 
             output += ")";
         }
+        else if (type.equals("null") || type.equals("quit")) output = "";
         else {
             output += toString();
         }
